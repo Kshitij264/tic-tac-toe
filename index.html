@@ -1,76 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Tic Tac Toe</title>
-<link rel="stylesheet" href="style.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="splash-screen">
+        <h1 class="splash-title">ULTIMATE TIC TAC TOE</h1>
+    </div>
 
-<!-- Left Image Container -->
-<div id="leftImage" class="image-container"><img src="download.jpeg" alt="Description" style="width:100%; height: 100%; object-fit: cover;"></div>
+    <div class="background-container">
+        <div class="blob"></div>
+        <div class="blob"></div>
+        <div class="blob"></div>
+    </div>
 
-<!-- Game Section -->
-<div id="gameSection">
-<!-- Start Menu -->
-<div id="startMenu" class="menu">
-<h1>Tic Tac Toe</h1>
-<button id="playerMode">Player vs Player</button>
-<button id="aiMode">Player vs AI</button>
-</div>
+    <div class="theme-switcher">
+        <input type="checkbox" id="themeToggle">
+        <label for="themeToggle" class="slider">
+            <span class="icon sun-icon">☀️</span>
+            <span class="icon moon-icon">🌙</span>
+        </label>
+    </div>
 
-<!-- Difficulty Menu (for AI Mode) -->
-<div id="difficultyMenu" class="menu" style="display: none;">
-<h2>Select AI Difficulty</h2>
-<button id="easyMode">Easy</button>
-<button id="hardMode">Hard</button>
-</div>
+    <div id="mainMenu" class="hidden-on-load">
+        <h1>Tic-Tac-Toe</h1>
+        <div id="modeSelection">
+            <h2>Select Game Mode</h2>
+            <button id="pvpButton">Player vs Player</button>
+            <button id="pvaButton">Player vs AI</button>
+        </div>
+        <div id="pvpNameEntry" class="hidden">
+            <h2>Enter Player Names</h2>
+            <div class="input-group">
+                <label for="player1NameInput">Player 1 (X)</label>
+                <input type="text" id="player1NameInput" placeholder="Enter name..." maxlength="12">
+            </div>
+            <div class="input-group">
+                <label for="player2NameInput">Player 2 (O)</label>
+                <input type="text" id="player2NameInput" placeholder="Enter name..." maxlength="12">
+            </div>
+            <button id="startGamePvpButton">Start Game</button>
+        </div>
+        <div id="aiNameEntry" class="hidden">
+            <h2>Enter Your Name</h2>
+            <div class="input-group">
+                <label for="aiPlayerNameInput">Your Name</label>
+                <input type="text" id="aiPlayerNameInput" placeholder="Enter name..." maxlength="12">
+            </div>
+            <button id="aiContinueButton">Continue</button>
+        </div>
+        <div id="markSelection" class="hidden">
+            <h2>Choose Your Mark</h2>
+            <div class="button-group">
+                <button id="chooseXButton">Play as X</button>
+                <button id="chooseOButton">Play as O</button>
+            </div>
+        </div>
+        <div id="difficultySelection" class="hidden">
+            <h2>Select AI Difficulty</h2>
+            <button id="normalButton">Normal</button>
+            <button id="hardButton">Hard</button>
+        </div>
+    </div>
 
-<!-- Name Prompt -->
-<div id="namePrompt" class="menu" style="display: none;">
-<h2>Enter Player Names</h2>
-<input type="text" id="player1Name" placeholder="Player 1 Name"/>
-<input type="text" id="player2Name" placeholder="Player 2 Name"/>
-<button id="startGameButton">Start Game</button>
-</div>
-
-<!-- Game UI -->
-<div id="gameContainer" style="display: none;">
-<div class="scoreboard">
-<span id="player1ScoreName">Player 1</span>: <span id="player1Score">0</span> |
-<span id="player2ScoreName">Player 2</span>: <span id="player2Score">0</span> |
-Draws: <span id="drawScore">0</span>
-</div>
-<div class="grid">
-<div class="cell" data-index="0"></div>
-<div class="cell" data-index="1"></div>
-<div class="cell" data-index="2"></div>
-<div class="cell" data-index="3"></div>
-<div class="cell" data-index="4"></div>
-<div class="cell" data-index="5"></div>
-<div class="cell" data-index="6"></div>
-<div class="cell" data-index="7"></div>
-<div class="cell" data-index="8"></div>
-</div>
-<div id="message"></div>
-<button id="resetBtn">Reset Game</button>
-</div>
-
-<!-- Theme Toggle Button at Bottom -->
-<div class="theme-toggle">
-  <label>
-    <input type="checkbox" id="themeToggle" />
-    <span class="slider"></span> Toggle Theme
-  </label>
-</div>
-
-
-</div>
-
-<!-- Right Image Container -->
-<div id="rightImage" class="image-container"><img src="download.jpeg" alt="Description" style="width:100%; height: 100%; object-fit: cover;"></div>
-
-<script src="script.js"></script>
+    <main id="gameContainer" class="hidden">
+        <div id="scoreboard">
+            <div id="player1Score" class="score-card">
+                <span class="score-name">Player 1</span>
+                <span class="score-value">0</span>
+            </div>
+            <div id="player2Score" class="score-card">
+                <span class="score-name">Player 2</span>
+                <span class="score-value">0</span>
+            </div>
+        </div>
+        <h2 id="statusArea"></h2>
+        <div id="gameBoard">
+            <div class="cell" data-cell-index="0"></div>
+            <div class="cell" data-cell-index="1"></div>
+            <div class="cell" data-cell-index="2"></div>
+            <div class="cell" data-cell-index="3"></div>
+            <div class="cell" data-cell-index="4"></div>
+            <div class="cell" data-cell-index="5"></div>
+            <div class="cell" data-cell-index="6"></div>
+            <div class="cell" data-cell-index="7"></div>
+            <div class="cell" data-cell-index="8"></div>
+            <svg id="line-svg" class="hidden">
+                <line id="winning-line" />
+            </svg>
+        </div>
+        <div class="button-group">
+            <button id="resetRoundButton">Reset Round</button>
+            <button id="mainMenuButton">Main Menu</button>
+        </div>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
