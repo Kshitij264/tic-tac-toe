@@ -2,14 +2,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM Element Selection ---
     const themeToggle = document.getElementById('themeToggle');
-    const cells = document.querySelectorAll('.cell');
+    let cells = [];
     const statusArea = document.getElementById('statusArea');
     const mainMenuButton = document.getElementById('mainMenuButton');
     const resetRoundButton = document.getElementById('resetRoundButton');
+    const splashScreen = document.getElementById('splash-screen');
+    const boardSizeSelection = document.getElementById('boardSizeSelection');
     const mainMenu = document.getElementById('mainMenu');
     const gameContainer = document.getElementById('gameContainer');
-    const lineSVG = document.getElementById('line-svg');
-    const winningLine = document.getElementById('winning-line');
+    const gameBoard = document.getElementById('gameBoard');
+    const size3x3Button = document.getElementById('size3x3Button');
+    const size4x4Button = document.getElementById('size4x4Button');
     const modeSelection = document.getElementById('modeSelection');
     const pvpNameEntry = document.getElementById('pvpNameEntry');
     const aiNameEntry = document.getElementById('aiNameEntry');
@@ -28,55 +31,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const aiPlayerNameInput = document.getElementById('aiPlayerNameInput');
     const player1ScoreCard = document.getElementById('player1Score');
     const player2ScoreCard = document.getElementById('player2Score');
+    const allAppScreens = [boardSizeSelection, mainMenu, gameContainer];
 
     // --- Game State Variables ---
-    let gameState, currentPlayer, gameActive, gameMode, difficulty = null;
+    let gameState, currentPlayer, gameActive, gameMode, difficulty = null, boardSize = 3;
     let humanPlayerName, player1Name, player2Name;
     let humanScore = 0, aiScore = 0, pvpPlayer1Score = 0, pvpPlayer2Score = 0;
     let humanMark, aiMark;
     let startingPlayer = 'X';
-    const winningConditions = [
-        [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]
-    ];
-    const cellCenterCoords = [
-        { x: '16.67%', y: '16.67%' }, { x: '50%', y: '16.67%' }, { x: '83.33%', y: '16.67%' },
-        { x: '16.67%', y: '50%' },    { x: '50%', y: '50%' },    { x: '83.33%', y: '50%' },
-        { x: '16.67%', y: '83.33%' }, { x: '50%', y: '83.33%' }, { x: '83.33%', y: '83.33%' }
-    ];
+    let winningConditions = [];
 
-    // --- Theme & Confetti Logic ---
+    // --- All Functions Are Inside DOMContentLoaded ---
     const applyTheme = (theme) => { document.body.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); themeToggle.checked = theme === 'light'; };
-    themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked ? 'light' : 'dark'));
-    applyTheme(localStorage.getItem('theme') || 'dark');
     const triggerConfetti = () => confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
-
-    // --- Game Setup ---
-    const showScreen = (screen) => { [modeSelection, pvpNameEntry, aiNameEntry, markSelection, difficultySelection].forEach(s => s.classList.add('hidden')); screen.classList.remove('hidden'); };
-    const startGame = () => { updateScoreboard(); initializeBoard(); mainMenu.classList.add('hidden'); gameContainer.classList.remove('hidden'); };
-    
-    pvpButton.addEventListener('click', () => { gameMode = 'pvp'; showScreen(pvpNameEntry); });
-    pvaButton.addEventListener('click', () => { gameMode = 'pva'; showScreen(aiNameEntry); });
-    
-    startGamePvpButton.addEventListener('click', () => {
-        player1Name = player1NameInput.value || 'Player 1';
-        player2Name = player2NameInput.value || 'Player 2';
-        startGame();
-    });
-    
-    aiContinueButton.addEventListener('click', () => {
-        humanPlayerName = aiPlayerNameInput.value || 'Player';
-        showScreen(markSelection);
-    });
-
-    const chooseMark = (mark) => {
-        humanMark = mark;
-        aiMark = (mark === 'X') ? 'O' : 'X';
-        if (difficulty) { selectDifficulty(difficulty); } 
-        else { showScreen(difficultySelection); }
+    const transitionTo = (screenToShow) => {
+        allAppScreens.forEach(screen => screen.classList.add('hidden'));
+        if (screenToShow) screenToShow.classList.remove('hidden');
     };
-    chooseXButton.addEventListener('click', () => chooseMark('X'));
-    chooseOButton.addEventListener('click', () => chooseMark('O'));
-
+    const showMenuScreen = (screenToShow) => {
+        const screens = mainMenu.querySelectorAll('.screen');
+        screens.forEach(s => s.classList.add('hidden'));
+        if (screenToShow) screenToShow.classList.remove('hidden');
+    };
+    const selectBoardSize = (size) => { boardSize = size; transitionTo(mainMenu); showMenuScreen(modeSelection); };
+    const startGame = () => { createBoard(); updateScoreboard(); initializeBoard(); transitionTo(gameContainer); };
+    const chooseMark = (mark) => {
+        humanMark = mark; aiMark = (mark === 'X') ? 'O' : 'X';
+        if (difficulty) { selectDifficulty(difficulty); } 
+        else { showMenuScreen(difficultySelection); }
+    };
     const selectDifficulty = (diff) => {
         difficulty = diff;
         const aiName = `AI (${diff.charAt(0).toUpperCase() + diff.slice(1)})`;
@@ -84,10 +67,27 @@ document.addEventListener('DOMContentLoaded', () => {
         else { player1Name = aiName; player2Name = humanPlayerName; }
         startGame();
     };
-    normalButton.addEventListener('click', () => selectDifficulty('normal'));
-    hardButton.addEventListener('click', () => selectDifficulty('hard'));
-
-    // --- Scoreboard ---
+    const createBoard = () => {
+        gameBoard.innerHTML = ''; // Clear previous cells
+        gameBoard.style.setProperty('--grid-size', boardSize);
+        for (let i = 0; i < boardSize * boardSize; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.cellIndex = i;
+            gameBoard.appendChild(cell);
+        }
+        cells = document.querySelectorAll('.cell');
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        generateWinningConditions();
+    };
+    const generateWinningConditions = () => {
+        const lines = []; const n = boardSize;
+        for (let i = 0; i < n; i++) { const row = []; for (let j = 0; j < n; j++) { row.push(i * n + j); } lines.push(row); }
+        for (let i = 0; i < n; i++) { const col = []; for (let j = 0; j < n; j++) { col.push(j * n + i); } lines.push(col); }
+        const diag1 = []; const diag2 = [];
+        for (let i = 0; i < n; i++) { diag1.push(i * (n + 1)); diag2.push((i + 1) * (n - 1)); } lines.push(diag1); lines.push(diag2);
+        winningConditions = lines;
+    };
     const updateScoreboard = () => {
         player1ScoreCard.querySelector('.score-name').textContent = player1Name;
         player2ScoreCard.querySelector('.score-name').textContent = player2Name;
@@ -96,8 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
             else { player1ScoreCard.querySelector('.score-value').textContent = aiScore; player2ScoreCard.querySelector('.score-value').textContent = humanScore; }
         } else { player1ScoreCard.querySelector('.score-value').textContent = pvpPlayer1Score; player2ScoreCard.querySelector('.score-value').textContent = pvpPlayer2Score; }
     };
-    
-    // --- Core Game Logic ---
     const handleCellClick = (e) => {
         const index = parseInt(e.target.getAttribute('data-cell-index'));
         if (gameState[index] !== "" || !gameActive || (gameMode === 'pva' && currentPlayer === aiMark)) return;
@@ -108,15 +106,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const placeMark = (cell, index) => { gameState[index] = currentPlayer; cell.classList.add(currentPlayer.toLowerCase()); };
     const changePlayer = () => { currentPlayer = (currentPlayer === 'X') ? 'O' : 'X'; const currentName = (currentPlayer === 'X') ? player1Name : player2Name; statusArea.innerHTML = `${currentName}'s turn`; };
     const checkResult = () => {
-        let roundWon = false, winningCombo = [];
-        for (let condition of winningConditions) { if (condition.every(index => gameState[index] === currentPlayer)) { roundWon = true; winningCombo = condition; break; } }
+        let roundWon = false;
+        for (let condition of winningConditions) { if (condition.every(index => gameState[index] === currentPlayer)) { roundWon = true; break; } }
         if (roundWon) {
             gameActive = false;
             const winnerName = (currentPlayer === 'X') ? player1Name : player2Name;
             statusArea.innerHTML = `${winnerName} has won!`;
             if (gameMode === 'pva') { if (currentPlayer === humanMark) humanScore++; else aiScore++; } 
             else { if (currentPlayer === 'X') pvpPlayer1Score++; else pvpPlayer2Score++; }
-            updateScoreboard(); drawWinningLine(winningCombo); triggerConfetti();
+            updateScoreboard(); 
+            triggerConfetti();
             if (gameMode === 'pvp') { startingPlayer = (startingPlayer === 'X') ? 'O' : 'X'; }
             return true;
         }
@@ -127,16 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return false;
     };
-    const drawWinningLine = (combo) => {
-        const startCell = cellCenterCoords[combo[0]], endCell = cellCenterCoords[combo[2]];
-        winningLine.setAttribute('x1', startCell.x); winningLine.setAttribute('y1', startCell.y);
-        winningLine.setAttribute('x2', endCell.x); winningLine.setAttribute('y2', endCell.y);
-        winningLine.style.strokeDasharray = 1000; winningLine.style.strokeDashoffset = 1000;
-        lineSVG.classList.remove('hidden');
-        setTimeout(() => { winningLine.style.strokeDashoffset = 0; }, 10);
-    };
-
-    // --- AI Logic ---
     const makeAIMove = () => {
         let move = (difficulty === 'normal') ? getNormalAIMove() : getHardAIMove();
         const cell = document.querySelector(`.cell[data-cell-index='${move}']`);
@@ -144,54 +133,80 @@ document.addEventListener('DOMContentLoaded', () => {
         changePlayer(); gameActive = true;
     };
     const getNormalAIMove = () => { let available = gameState.map((c, i) => c === "" ? i : null).filter(v => v !== null); return available[Math.floor(Math.random() * available.length)]; };
-    const getHardAIMove = () => minimax(gameState, aiMark).index;
-    const minimax = (board, turn) => {
+    const getHardAIMove = () => {
+        const depth = (boardSize === 3) ? 9 : 5;
+        return minimax(gameState, aiMark, -Infinity, +Infinity, depth).index;
+    };
+    const evaluateBoard = (board) => {
+        let score = 0;
+        for (const condition of winningConditions) {
+            const line = condition.map(index => board[index]);
+            let aiCount = 0; let humanCount = 0;
+            for (const cell of line) { if (cell === aiMark) aiCount++; else if (cell === humanMark) humanCount++; }
+            if (humanCount === 0) { score += [0, 1, 10, 100, 10000][aiCount]; }
+            if (aiCount === 0) { score -= [0, 1, 10, 100, 10000][humanCount] * 1.5; }
+        } return score;
+    };
+    const minimax = (board, turn, alpha, beta, depth) => {
         const availSpots = board.map((c, i) => c === "" ? i : null).filter(v => v !== null);
-        if (checkWinner(board, humanMark)) return { score: -10 }; if (checkWinner(board, aiMark)) return { score: 10 }; if (availSpots.length === 0) return { score: 0 };
-        const moves = [];
-        for (let spot of availSpots) {
-            const move = { index: spot }; board[spot] = turn; move.score = minimax(board, turn === aiMark ? humanMark : aiMark).score; board[spot] = ""; moves.push(move);
-        }
+        if (checkWinner(board, humanMark)) return { score: -100000 }; if (checkWinner(board, aiMark)) return { score: 100000 };
+        if (availSpots.length === 0) return { score: 0 }; if (depth === 0) return { score: evaluateBoard(board) };
         let bestMove;
-        if (turn === aiMark) { let bestScore = -10000; moves.forEach((move, i) => { if (move.score > bestScore) { bestScore = move.score; bestMove = i; } });
-        } else { let bestScore = 10000; moves.forEach((move, i) => { if (move.score < bestScore) { bestScore = move.score; bestMove = i; } }); }
-        return moves[bestMove];
+        if (turn === aiMark) {
+            let bestScore = -Infinity;
+            for (let spot of availSpots) {
+                board[spot] = turn; let result = minimax(board, humanMark, alpha, beta, depth - 1); board[spot] = "";
+                if (result.score > bestScore) { bestScore = result.score; bestMove = { index: spot, score: bestScore }; }
+                alpha = Math.max(alpha, bestScore); if (beta <= alpha) break;
+            } return bestMove;
+        } else {
+            let bestScore = +Infinity;
+            for (let spot of availSpots) {
+                board[spot] = turn; let result = minimax(board, aiMark, alpha, beta, depth - 1); board[spot] = "";
+                if (result.score < bestScore) { bestScore = result.score; bestMove = { index: spot, score: bestScore }; }
+                beta = Math.min(beta, bestScore); if (beta <= alpha) break;
+            } return bestMove;
+        }
     };
     const checkWinner = (board, turn) => winningConditions.some(c => c.every(i => board[i] === turn));
-
-    // --- Board & Menu Logic ---
     const initializeBoard = () => {
         gameActive = true;
-        gameState = ["", "", "", "", "", "", "", "", ""];
+        gameState = Array(boardSize * boardSize).fill("");
         currentPlayer = (gameMode === 'pvp') ? startingPlayer : 'X';
         const name = (currentPlayer === 'X') ? player1Name : player2Name;
         statusArea.innerHTML = `${name}'s turn`;
         cells.forEach(cell => cell.classList.remove('x', 'o'));
-        lineSVG.classList.add('hidden');
         if (gameMode === 'pva' && currentPlayer === aiMark) { gameActive = false; setTimeout(makeAIMove, 500); }
     };
-    const handleResetRound = () => { if (gameMode === 'pva') { gameContainer.classList.add('hidden'); mainMenu.classList.remove('hidden'); showScreen(markSelection); } else { initializeBoard(); } };
+    const handleResetRound = () => { if (gameMode === 'pva') { transitionTo(mainMenu); showMenuScreen(markSelection); } else { initializeBoard(); } };
     const returnToMainMenu = () => {
         humanScore = 0; aiScore = 0; pvpPlayer1Score = 0; pvpPlayer2Score = 0; 
         difficulty = null; startingPlayer = 'X';
-        gameActive = false;
-        gameContainer.classList.add('hidden');
         player1NameInput.value = ""; player2NameInput.value = ""; aiPlayerNameInput.value = "";
-        showScreen(modeSelection);
-        mainMenu.classList.remove('hidden');
+        transitionTo(boardSizeSelection);
     };
     
-    // --- Event Listeners & Splash Screen ---
-    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    // --- Event Listeners ---
+    themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked ? 'light' : 'dark'));
+    size3x3Button.addEventListener('click', () => selectBoardSize(3));
+    size4x4Button.addEventListener('click', () => selectBoardSize(4));
+    pvpButton.addEventListener('click', () => { gameMode = 'pvp'; showMenuScreen(pvpNameEntry); });
+    pvaButton.addEventListener('click', () => { gameMode = 'pva'; showMenuScreen(aiNameEntry); });
+    startGamePvpButton.addEventListener('click', () => { player1Name = player1NameInput.value || 'Player 1'; player2Name = player2NameInput.value || 'Player 2'; startGame(); });
+    aiContinueButton.addEventListener('click', () => { humanPlayerName = aiPlayerNameInput.value || 'Player'; showMenuScreen(markSelection); });
+    chooseXButton.addEventListener('click', () => chooseMark('X'));
+    chooseOButton.addEventListener('click', () => chooseMark('O'));
+    normalButton.addEventListener('click', () => selectDifficulty('normal'));
+    hardButton.addEventListener('click', () => selectDifficulty('hard'));
     mainMenuButton.addEventListener('click', returnToMainMenu);
     resetRoundButton.addEventListener('click', handleResetRound);
 
-    const splashScreen = document.getElementById('splash-screen');
+    // --- Splash Screen ---
     setTimeout(() => {
         splashScreen.classList.add('fade-out');
-        mainMenu.classList.add('visible');
-    }, 2500); // Start fade-out of splash after 2.5s
-    setTimeout(() => {
-        splashScreen.style.display = 'none';
-    }, 3000); // Remove splash screen completely after 3s
+        setTimeout(() => {
+            splashScreen.style.display = 'none';
+            transitionTo(boardSizeSelection);
+        }, 500);
+    }, 2500);
 });

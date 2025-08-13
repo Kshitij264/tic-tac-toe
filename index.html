@@ -28,14 +28,23 @@
         </label>
     </div>
 
-    <div id="mainMenu" class="hidden-on-load">
+    <div id="boardSizeSelection" class="hidden">
         <h1>Tic-Tac-Toe</h1>
-        <div id="modeSelection">
+        <h2>Choose Board Size</h2>
+        <div class="button-group">
+            <button id="size3x3Button">3 x 3</button>
+            <button id="size4x4Button">4 x 4</button>
+        </div>
+    </div>
+
+    <div id="mainMenu" class="hidden">
+        <h1>Tic-Tac-Toe</h1>
+        <div id="modeSelection" class="screen">
             <h2>Select Game Mode</h2>
             <button id="pvpButton">Player vs Player</button>
             <button id="pvaButton">Player vs AI</button>
         </div>
-        <div id="pvpNameEntry" class="hidden">
+        <div id="pvpNameEntry" class="screen hidden">
             <h2>Enter Player Names</h2>
             <div class="input-group">
                 <label for="player1NameInput">Player 1 (X)</label>
@@ -47,7 +56,7 @@
             </div>
             <button id="startGamePvpButton">Start Game</button>
         </div>
-        <div id="aiNameEntry" class="hidden">
+        <div id="aiNameEntry" class="screen hidden">
             <h2>Enter Your Name</h2>
             <div class="input-group">
                 <label for="aiPlayerNameInput">Your Name</label>
@@ -55,14 +64,14 @@
             </div>
             <button id="aiContinueButton">Continue</button>
         </div>
-        <div id="markSelection" class="hidden">
+        <div id="markSelection" class="screen hidden">
             <h2>Choose Your Mark</h2>
             <div class="button-group">
                 <button id="chooseXButton">Play as X</button>
                 <button id="chooseOButton">Play as O</button>
             </div>
         </div>
-        <div id="difficultySelection" class="hidden">
+        <div id="difficultySelection" class="screen hidden">
             <h2>Select AI Difficulty</h2>
             <button id="normalButton">Normal</button>
             <button id="hardButton">Hard</button>
@@ -82,19 +91,7 @@
         </div>
         <h2 id="statusArea"></h2>
         <div id="gameBoard">
-            <div class="cell" data-cell-index="0"></div>
-            <div class="cell" data-cell-index="1"></div>
-            <div class="cell" data-cell-index="2"></div>
-            <div class="cell" data-cell-index="3"></div>
-            <div class="cell" data-cell-index="4"></div>
-            <div class="cell" data-cell-index="5"></div>
-            <div class="cell" data-cell-index="6"></div>
-            <div class="cell" data-cell-index="7"></div>
-            <div class="cell" data-cell-index="8"></div>
-            <svg id="line-svg" class="hidden">
-                <line id="winning-line" />
-            </svg>
-        </div>
+            </div>
         <div class="button-group">
             <button id="resetRoundButton">Reset Round</button>
             <button id="mainMenuButton">Main Menu</button>
