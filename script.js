@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const player1ScoreCard = document.getElementById('player1Score');
     const player2ScoreCard = document.getElementById('player2Score');
     const allAppScreens = [boardSizeSelection, mainMenu, gameContainer];
+    const clickSound = document.getElementById('click-sound');
+    const winSound = document.getElementById('win-sound');
+    const tieSound = document.getElementById('tie-sound');
 
     // --- Game State Variables ---
     let gameState, currentPlayer, gameActive, gameMode, difficulty = null, boardSize = 3;
@@ -42,6 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let winningConditions = [];
 
     // --- All Functions Are Inside DOMContentLoaded ---
+    const playSound = (sound) => {
+        if (sound) {
+            sound.currentTime = 0;
+            sound.play();
+        }
+    };
     const applyTheme = (theme) => { document.body.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); themeToggle.checked = theme === 'light'; };
     const triggerConfetti = () => confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
     const transitionTo = (screenToShow) => {
@@ -68,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startGame();
     };
     const createBoard = () => {
-        gameBoard.innerHTML = ''; // Clear previous cells
+        gameBoard.innerHTML = '';
         gameBoard.style.setProperty('--grid-size', boardSize);
         for (let i = 0; i < boardSize * boardSize; i++) {
             const cell = document.createElement('div');
@@ -103,7 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
         changePlayer();
         if (gameMode === 'pva' && currentPlayer === aiMark) { gameActive = false; setTimeout(makeAIMove, 500); }
     };
-    const placeMark = (cell, index) => { gameState[index] = currentPlayer; cell.classList.add(currentPlayer.toLowerCase()); };
+    const placeMark = (cell, index) => {
+        playSound(clickSound);
+        gameState[index] = currentPlayer;
+        cell.classList.add(currentPlayer.toLowerCase());
+    };
     const changePlayer = () => { currentPlayer = (currentPlayer === 'X') ? 'O' : 'X'; const currentName = (currentPlayer === 'X') ? player1Name : player2Name; statusArea.innerHTML = `${currentName}'s turn`; };
     const checkResult = () => {
         let roundWon = false;
@@ -116,11 +129,13 @@ document.addEventListener('DOMContentLoaded', () => {
             else { if (currentPlayer === 'X') pvpPlayer1Score++; else pvpPlayer2Score++; }
             updateScoreboard(); 
             triggerConfetti();
+            playSound(winSound);
             if (gameMode === 'pvp') { startingPlayer = (startingPlayer === 'X') ? 'O' : 'X'; }
             return true;
         }
         if (!gameState.includes("")) {
             gameActive = false; statusArea.innerHTML = `Game ended in a tie! 🤝`;
+            playSound(tieSound);
             if (gameMode === 'pvp') { startingPlayer = (startingPlayer === 'X') ? 'O' : 'X'; }
             return true;
         }
@@ -200,6 +215,13 @@ document.addEventListener('DOMContentLoaded', () => {
     hardButton.addEventListener('click', () => selectDifficulty('hard'));
     mainMenuButton.addEventListener('click', returnToMainMenu);
     resetRoundButton.addEventListener('click', handleResetRound);
+
+    // Universal click sound for all buttons and the theme toggle
+    document.body.addEventListener('click', (event) => {
+        if (event.target.tagName === 'BUTTON' || event.target.closest('.theme-switcher')) {
+            playSound(clickSound);
+        }
+    });
 
     // --- Splash Screen ---
     setTimeout(() => {

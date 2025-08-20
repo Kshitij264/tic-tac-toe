@@ -91,13 +91,20 @@
         </div>
         <h2 id="statusArea"></h2>
         <div id="gameBoard">
-            </div>
+            <svg id="line-svg" class="hidden">
+                <line id="winning-line" />
+            </svg>
+        </div>
         <div class="button-group">
             <button id="resetRoundButton">Reset Round</button>
             <button id="mainMenuButton">Main Menu</button>
         </div>
     </main>
     
+    <audio id="click-sound" src="click.wav" preload="auto"></audio>
+    <audio id="win-sound" src="win.wav" preload="auto"></audio>
+    <audio id="tie-sound" src="tie.wav" preload="auto"></audio>
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="script.js"></script>
 </body>

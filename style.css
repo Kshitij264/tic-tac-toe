@@ -7,6 +7,7 @@
     --text-color: #ffffff;
     --player-x-color: #53a8b6;
     --player-o-color: #e94560;
+    --line-color: #ffc107;
     --font-family: 'Poppins', sans-serif;
     --blob-color-1: #e94560;
     --blob-color-2: #53a8b6;
@@ -20,6 +21,7 @@
     --text-color: #212529;
     --player-x-color: #20c997;
     --player-o-color: #fd7e14;
+    --line-color: #0d6efd;
     --blob-color-1: #20c997;
     --blob-color-2: #fd7e14;
     --blob-color-3: #0d6efd;
@@ -31,9 +33,9 @@
     background-color: var(--bg-color);
     display: flex; justify-content: center; align-items: center;
     z-index: 10000;
-    transition: opacity 0.5s ease-out, visibility 0.5s;
+    transition: opacity 0.5s ease-out;
 }
-#splash-screen.fade-out { opacity: 0; visibility: hidden; }
+#splash-screen.fade-out { opacity: 0; }
 .splash-title {
     font-size: clamp(2em, 8vw, 4em); color: var(--accent-color);
     text-shadow: 0 0 15px rgba(255,255,255,0.3);
